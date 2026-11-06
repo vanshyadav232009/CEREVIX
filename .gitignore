@@ -18,7 +18,7 @@ NEXUS_BACKUP_*/
 # Build files
 build/
 dist/
-*.spec
+LHMHelper.spec
 
 # Logs
 *.log

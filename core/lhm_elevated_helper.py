@@ -1,7 +1,6 @@
 import socket
 import subprocess
 import sys
-import time
 from pathlib import Path
 
 
@@ -20,11 +19,9 @@ def main():
     connection = None
 
     try:
-        # Start LHM with administrator privileges inherited
-        # from this elevated helper.
         startup_info = subprocess.STARTUPINFO()
         startup_info.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-        startup_info.wShowWindow = 7  # SW_SHOWMINNOACTIVE
+        startup_info.wShowWindow = 7
 
         process = subprocess.Popen(
             [str(executable)],
@@ -32,10 +29,9 @@ def main():
             startupinfo=startup_info
         )
 
-        # Connect back to the CEREVIX process.
         connection = socket.create_connection(
             ("127.0.0.1", port),
-            timeout=15
+            timeout=30
         )
 
         connection.settimeout(None)
@@ -44,7 +40,6 @@ def main():
             f"READY:{token}:{process.pid}\n".encode("utf-8")
         )
 
-        # Wait for CEREVIX to request shutdown.
         with connection.makefile("r", encoding="utf-8") as reader:
             command = reader.readline().strip()
 
@@ -67,7 +62,6 @@ def main():
         if connection is not None:
             connection.close()
 
-        # If CEREVIX disconnects unexpectedly, clean up our child.
         if process is not None and process.poll() is None:
             process.terminate()
 
