@@ -25,6 +25,7 @@ from PySide6.QtWidgets import (
 from core.sensors import get_hardware_temperatures
 from core.gpu import get_gpu_stats
 from core.storage import get_storage_info
+from core.lhm_manager import LHMManager
 from core.config import APP_NAME, APP_VERSION
 from ui.sidebar import Sidebar
 from ui.pages.page_manager import PageManager
@@ -677,9 +678,13 @@ class Cerevix(QMainWindow):
         self.disk_io_last_time = time.monotonic()
 
         # Query drive identity/health once at startup; never poll PowerShell.
+        # Start LibreHardwareMonitor if necessary.
+        self.lhm_manager = LHMManager()
+        self.lhm_available = self.lhm_manager.start()
+
+        # Query drive identity/health once at startup; never poll PowerShell.
         detected_disks = get_storage_info()
         self.storage_info = detected_disks[0] if detected_disks else None
-
         self.sensor_thread = None
         self.sensor_worker = None
 
@@ -1109,6 +1114,9 @@ class Cerevix(QMainWindow):
                 event.ignore()
                 self.timer.start(UPDATE_INTERVAL)
                 return
+
+        # Stop only the LHM instance managed by CEREVIX.
+        self.lhm_manager.stop()
 
         event.accept()
 
